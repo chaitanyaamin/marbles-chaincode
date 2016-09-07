@@ -147,6 +147,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return res, err
 	} else if function == "remove_trade" {									//cancel an open trade order
 		return t.remove_trade(stub, args)
+	} else if function == "ecrire" {										//writes a value to the chaincode state
+		return t.Ecrire(stub, args)
 	}
 	fmt.Println("invoke did not find func: " + function)					//error
 
@@ -249,6 +251,26 @@ func (t *SimpleChaincode) Write(stub *shim.ChaincodeStub, args []string) ([]byte
 	return nil, nil
 }
 
+// ============================================================================================================================
+// Ecrire - write variable into chaincode state
+// ============================================================================================================================
+func (t *SimpleChaincode) Ecrire(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var name, value string // Entities
+	var err error
+	fmt.Println("running write()")
+
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2. name of the variable and value to set")
+	}
+
+	name = args[0]															//rename for funsies
+	value = "9999:" + args[1]
+	err = stub.PutState(name, []byte(value))								//write the variable into the chaincode state
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
 // ============================================================================================================================
 // Init Marble - create a new marble, store into chaincode state
 // ============================================================================================================================
