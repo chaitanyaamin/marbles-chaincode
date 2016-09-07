@@ -252,7 +252,7 @@ func (t *SimpleChaincode) Write(stub *shim.ChaincodeStub, args []string) ([]byte
 }
 
 // ============================================================================================================================
-// Ecrire - write variable into chaincode state
+// Ecrire - Prepend 9999: and write variable into chaincode state
 // ============================================================================================================================
 func (t *SimpleChaincode) Ecrire(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var name, value string // Entities
