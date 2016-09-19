@@ -20,10 +20,10 @@ under the License.
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
-	"encoding/json"
 	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -33,46 +33,46 @@ import (
 type SimpleChaincode struct {
 }
 
-var smartPayIndexStr = "_smartpayindex"			//name for the key/value that will store a list of all known marbles
-var paymentIndexStr  = "_paymentindex"
+var smartPayIndexStr = "_smartpayindex" //name for the key/value that will store a list of all known marbles
+var paymentIndexStr = "_paymentindex"
 
 // PaymentTransaction simple Payment Transaction Schema
-type PaymentTransaction struct{
-	TransactionID string `json:"transactionID"`		//the fieldtags are needed to keep case from bouncing around
-	DrawerID string `json:"drawerID"`
-	PayeeID string `json:"payeeID"`
-	Amount int `json:"amount"`
-	Currency string `json:"currency"`
+type PaymentTransaction struct {
+	TransactionID string `json:"transactionID"` //the fieldtags are needed to keep case from bouncing around
+	DrawerID      string `json:"drawerID"`
+	PayeeID       string `json:"payeeID"`
+	Amount        int    `json:"amount"`
+	Currency      string `json:"currency"`
 }
 
 // RemittanceTransaction simple Remittance Transation Schema
-type RemittanceTransaction struct{
-	TransactionID string `json:"transactionID"`	  	//the fieldtags are needed to keep case from bouncing around
-	SourceID string `json:"sourceID"`
-	SourceCurrency string `json:"sourceCurrency"`
-	DestinationID string `json:"destinationID"`
+type RemittanceTransaction struct {
+	TransactionID       string `json:"transactionID"` //the fieldtags are needed to keep case from bouncing around
+	SourceID            string `json:"sourceID"`
+	SourceCurrency      string `json:"sourceCurrency"`
+	DestinationID       string `json:"destinationID"`
 	DestinationCurrency string `json:"destinationCurrency"`
-	Amount int `json:"amount"`
-	ExchangeRate int `json:"ExchangeRate"`
+	Amount              int    `json:"amount"`
+	ExchangeRate        int    `json:"ExchangeRate"`
 }
 
 // LendingTransacation simple Lending Transaction Schema
-type LendingTransacation struct{
-	TransactionID string `json:"transactionID"`		//the fieldtags are needed to keep case from bouncing around
-	LendorID string `json:"lendorID"`
-	BorrowerID string `json:"borrowerID"`
-	LoanAmount int `json:"loanAmount"`
-	Currency string `json:"currency"`
-	LoanRate int `json:"loanRate"`
-	LoanReturnDate int64 `json:"loanReturnDate"`
+type LendingTransacation struct {
+	TransactionID  string `json:"transactionID"` //the fieldtags are needed to keep case from bouncing around
+	LendorID       string `json:"lendorID"`
+	BorrowerID     string `json:"borrowerID"`
+	LoanAmount     int    `json:"loanAmount"`
+	Currency       string `json:"currency"`
+	LoanRate       int    `json:"loanRate"`
+	LoanReturnDate int64  `json:"loanReturnDate"`
 }
 
 // SmartPayTransaction simple SmartPay Transaction Schema
-type SmartPayTransaction struct{
-	TransactionID string `json:"transactionID"`		//user who created the open trade order
-	PaymentTrans PaymentTransaction  `json:"paymentTrans"`	//description of desired marble
-	RemitTrans RemittanceTransaction `json:"remitTrans"`	//array of marbles willing to trade away
-	LendTrans LendingTransacation `json:"lentTrans"`
+type SmartPayTransaction struct {
+	TransactionID string                `json:"transactionID"` //user who created the open trade order
+	PaymentTrans  PaymentTransaction    `json:"paymentTrans"`  //description of desired marble
+	RemitTrans    RemittanceTransaction `json:"remitTrans"`    //array of marbles willing to trade away
+	LendTrans     LendingTransacation   `json:"lentTrans"`
 }
 
 // ============================================================================================================================
@@ -103,18 +103,18 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	}
 
 	// Write the state to the ledger
-	err = stub.PutState("abc", []byte(strconv.Itoa(Aval)))				//making a test var "abc", I find it handy to read/write to it right away to test the network
+	err = stub.PutState("abc", []byte(strconv.Itoa(Aval))) //making a test var "abc", I find it handy to read/write to it right away to test the network
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var empty []string
-	jsonAsBytes, _ := json.Marshal(empty)								//marshal an emtpy array of strings to clear the index
+	jsonAsBytes, _ := json.Marshal(empty) //marshal an emtpy array of strings to clear the index
 	err = stub.PutState(smartPayIndexStr, jsonAsBytes)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	err = stub.PutState(paymentIndexStr, jsonAsBytes)
 	if err != nil {
 		return nil, err
@@ -137,19 +137,19 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	fmt.Println("invoke is running " + function)
 
 	// Handle different functions
-	if function == "init" {													//initialize the chaincode state, used as reset
+	if function == "init" { //initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
-	} else if function == "delete" {										//deletes an entity from its state
-		res, err := t.Delete(stub, args)									//lets make sure all open trades are still valid
+	} else if function == "delete" { //deletes an entity from its state
+		res, err := t.Delete(stub, args) //lets make sure all open trades are still valid
 		return res, err
-	} else if function == "write" {											//writes a value to the chaincode state
+	} else if function == "write" { //writes a value to the chaincode state
 		return t.Write(stub, args)
-	} else if function == "initPayment" {									//create a new Payment
+	} else if function == "initPayment" { //create a new Payment
 		return t.initPayment(stub, args)
-	} else if function == "ecrire" {										//writes a value to the chaincode state
+	} else if function == "ecrire" { //writes a value to the chaincode state
 		return t.Ecrire(stub, args)
 	}
-	fmt.Println("invoke did not find func: " + function)					//error
+	fmt.Println("invoke did not find func: " + function) //error
 
 	return nil, errors.New("Received unknown function invocation")
 }
@@ -161,10 +161,10 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	fmt.Println("query is running " + function)
 
 	// Handle different functions
-	if function == "read" {													//read a variable
+	if function == "read" { //read a variable
 		return t.read(stub, args)
 	}
-	fmt.Println("query did not find func: " + function)						//error
+	fmt.Println("query did not find func: " + function) //error
 
 	return nil, errors.New("Received unknown function query")
 }
@@ -181,13 +181,13 @@ func (t *SimpleChaincode) read(stub *shim.ChaincodeStub, args []string) ([]byte,
 	}
 
 	name = args[0]
-	valAsbytes, err := stub.GetState(name)									//get the var from chaincode state
+	valAsbytes, err := stub.GetState(name) //get the var from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	return valAsbytes, nil													//send it onward
+	return valAsbytes, nil //send it onward
 }
 
 // ============================================================================================================================
@@ -197,9 +197,9 @@ func (t *SimpleChaincode) Delete(stub *shim.ChaincodeStub, args []string) ([]byt
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
-	
+
 	name := args[0]
-	err := stub.DelState(name)													//remove the key from chaincode state
+	err := stub.DelState(name) //remove the key from chaincode state
 	if err != nil {
 		return nil, errors.New("Failed to delete state")
 	}
@@ -210,21 +210,21 @@ func (t *SimpleChaincode) Delete(stub *shim.ChaincodeStub, args []string) ([]byt
 		return nil, errors.New("Failed to get SmartPayTransaction index")
 	}
 	var smartPayIndex []string
-	json.Unmarshal(smartPayTransactionAsBytes, &smartPayIndex)								//un stringify it aka JSON.parse()
-	
+	json.Unmarshal(smartPayTransactionAsBytes, &smartPayIndex) //un stringify it aka JSON.parse()
+
 	//remove marble from index
-	for i,val := range smartPayIndex{
+	for i, val := range smartPayIndex {
 		fmt.Println(strconv.Itoa(i) + " - looking at " + val + " for " + name)
-		if val == name{															//find the correct marble
+		if val == name { //find the correct marble
 			fmt.Println("Found SmartPay Transaction")
-			smartPayIndex = append(smartPayIndex[:i], smartPayIndex[i+1:]...)			//remove it
-			for x:= range smartPayIndex{											//debug prints...
+			smartPayIndex = append(smartPayIndex[:i], smartPayIndex[i+1:]...) //remove it
+			for x := range smartPayIndex {                                    //debug prints...
 				fmt.Println(string(x) + " - " + smartPayIndex[x])
 			}
 			break
 		}
 	}
-	jsonAsBytes, _ := json.Marshal(smartPayIndex)									//save new index
+	jsonAsBytes, _ := json.Marshal(smartPayIndex) //save new index
 	err = stub.PutState(smartPayIndexStr, jsonAsBytes)
 	return nil, nil
 }
@@ -241,14 +241,15 @@ func (t *SimpleChaincode) Write(stub *shim.ChaincodeStub, args []string) ([]byte
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. name of the variable and value to set")
 	}
 
-	name = args[0]															//rename for funsies
+	name = args[0] //rename for funsies
 	value = args[1]
-	err = stub.PutState(name, []byte(value))								//write the variable into the chaincode state
+	err = stub.PutState(name, []byte(value)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
+
 // ============================================================================================================================
 // Ecrire - Prepend 9999: and write variable into chaincode state
 // ============================================================================================================================
@@ -261,21 +262,21 @@ func (t *SimpleChaincode) Ecrire(stub *shim.ChaincodeStub, args []string) ([]byt
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. name of the variable and value to set")
 	}
 
-	name = args[0]															//rename for funsies
+	name = args[0] //rename for funsies
 	value = "9999:" + args[1]
-	err = stub.PutState(name, []byte(value))								//write the variable into the chaincode state
+	err = stub.PutState(name, []byte(value)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
+
 // ============================================================================================================================
 // Init Payment - create a new marble, store into chaincode state
 // ============================================================================================================================
 func (t *SimpleChaincode) initPayment(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var err error
-
-	//   0       1          2          3       4     
+	//   0       1          2          3       4
 	// "asdf", "blue", "35", "bob"
 	// TransId  DrawerID   PayeeID   Amount   Currency
 
@@ -316,32 +317,32 @@ func (t *SimpleChaincode) initPayment(stub *shim.ChaincodeStub, args []string) (
 	}
 	res := PaymentTransaction{}
 	json.Unmarshal(paymentAsBytes, &res)
-	if res.TransactionID == transID{
+	if res.TransactionID == transID {
 		fmt.Println("This Payment Transaction arleady exists: " + transID)
-		fmt.Println(res);
-		return nil, errors.New("This PaymentTranaction arleady exists")				//all stop a marble by this name exists
+		fmt.Println(res)
+		return nil, errors.New("This PaymentTranaction arleady exists") //all stop a marble by this name exists
 	}
-	
+
 	//build the Payment json string manually
-	str := `{"transactionID": "` + transID + `", "drawerID": "` + drawerID + `, "payeeID": "` + payeeID + `", "amount": ` + strconv.Itoa(amount)  + transID + `", "currency": "` + currency + `"}`
-	err = stub.PutState(transID, []byte(str))									//store marble with id as key
+	str := `{"transactionID": "` + transID + `", "drawerID": "` + drawerID + `, "payeeID": "` + payeeID + `", "amount": ` + strconv.Itoa(amount) + transID + `", "currency": "` + currency + `"}`
+	err = stub.PutState(transID, []byte(str)) //store marble with id as key
 	if err != nil {
 		return nil, err
 	}
-		
+
 	//get the Payment index
 	paymentAsBytes, err = stub.GetState(paymentIndexStr)
 	if err != nil {
 		return nil, errors.New("Failed to get marble index")
 	}
 	var paymentIndex []string
-	json.Unmarshal(paymentAsBytes, &paymentIndex)							//un stringify it aka JSON.parse()
-	
+	json.Unmarshal(paymentAsBytes, &paymentIndex) //un stringify it aka JSON.parse()
+
 	//append
-	paymentIndex = append(paymentIndex, transID)									//add marble name to index list
+	paymentIndex = append(paymentIndex, transID) //add marble name to index list
 	fmt.Println("! Payment index: ", paymentIndex)
 	jsonAsBytes, _ := json.Marshal(paymentIndex)
-	err = stub.PutState(paymentIndexStr, jsonAsBytes)						//store name of marble
+	err = stub.PutState(paymentIndexStr, jsonAsBytes) //store name of marble
 
 	fmt.Println("- End initPayment")
 	return nil, nil
