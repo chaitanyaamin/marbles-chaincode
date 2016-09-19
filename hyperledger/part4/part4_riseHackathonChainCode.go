@@ -146,8 +146,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.Write(stub, args)
 	} else if function == "initPayment" { //create a new Payment
 		return t.initPayment(stub, args)
-	} else if function == "ecrire" { //writes a value to the chaincode state
-		return t.Ecrire(stub, args)
+	} else if function == "newEcrire" { //writes a value to the chaincode state
+		return t.NewEcrire(stub, args)
 	}
 	fmt.Println("invoke did not find func: " + function) //error
 
@@ -253,7 +253,7 @@ func (t *SimpleChaincode) Write(stub *shim.ChaincodeStub, args []string) ([]byte
 // ============================================================================================================================
 // Ecrire - Prepend 9999: and write variable into chaincode state
 // ============================================================================================================================
-func (t *SimpleChaincode) Ecrire(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) NewEcrire(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	var name, value string // Entities
 	var err error
 	fmt.Println("running Ecrire()")
