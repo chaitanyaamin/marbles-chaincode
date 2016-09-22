@@ -263,7 +263,7 @@ func (t *SimpleChaincode) NewEcrire(stub *shim.ChaincodeStub, args []string) ([]
 	}
 
 	name = args[0] //rename for funsies
-	value = "NewEcrire99:" + args[1]
+	value = "SmartPayTransaction:" + args[1]
 	err = stub.PutState(name, []byte(value)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
