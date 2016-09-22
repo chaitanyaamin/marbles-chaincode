@@ -263,7 +263,7 @@ func (t *SimpleChaincode) JsonWrite(stub *shim.ChaincodeStub, args []string) ([]
 	}
 
 	name = args[0] //rename for funsies
-	value = "JsonWrite99:" + args[1]
+	value = "JsonWrite77:" + args[1]
 	err = stub.PutState(name, []byte(value)) //write the variable into the chaincode state
 	if err != nil {
 		return nil, err
